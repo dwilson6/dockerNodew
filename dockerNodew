@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-#Runs a node script or npm command in a docker container interactively. The first arg
-#should be the path to a script relative to the pwd or 'npm'. The current user/group
-#are injected into the container so you can do an npm install and get the right file
-#permissions
+# This file lives in the repo at: https://github.com/dwilson6/dockerNodew
+# Runs a node script or npm command in a docker container interactively. The 
+first arg should be the path to a script relative to the pwd or 'npm'. The 
+# current user/group are injected into the container so you can do an npm 
+# install and get the right file permissions
 ADD_USER_SCRIPT="addgroup -g $(id -g) $(id -gn); adduser -D -u $(id -u) -G $(id -gn) $(id -un) -s /bin/sh; su $(id -un) -c 'mkdir -p ./build/.tmp/.npm'; npm config set prefix './build/.tmp/.npm'"
 NODE_COMMAND="node $1 ${@:2}"
 if [[ "$1" = "npm" ]]; then
