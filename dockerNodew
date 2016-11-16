@@ -4,7 +4,7 @@
 # first arg should be the path to a script relative to the pwd or 'npm'. The 
 # current user/group are injected into the container so you can do an npm 
 # install and get the right file permissions
-ADD_USER_SCRIPT="addgroup -g $(id -g) $(id -gn); adduser -D -u $(id -u) -G $(id -gn) $(id -un) -s /bin/sh; su $(id -un) -c 'mkdir -p ./build/.tmp/.npm'; npm config set prefix './build/.tmp/.npm'"
+ADD_USER_SCRIPT="addgroup -gid $(id -g) 'usergroup'; adduser -uid $(id -u) --gecos "" --disabled-login --disabled-password --force-badname --ingroup 'usergroup' --shell /bin/sh '$(id -un)'; su $(id -un) -c 'mkdir -p ./build/.tmp/.npm'; npm config set prefix './build/.tmp/.npm'"
 NODE_COMMAND="node $1 ${@:2}"
 if [[ "$1" = "npm" ]]; then
   NODE_COMMAND="npm ${@:2}"
@@ -15,4 +15,4 @@ elif [[ -z $NODE_VERSION ]]; then
   NODE_VERSION=6.3.1
 fi
 COMMAND="$ADD_USER_SCRIPT; su $(id -un) -c '$NODE_COMMAND'"
-docker run -i --net=host --rm -v="$(pwd):/code" -w="/code" mhart/alpine-node:$NODE_VERSION /bin/sh -c "$COMMAND"
+docker run -i --net=host --rm -v="$(pwd):/code" -w="/code" node:$NODE_VERSION /bin/sh -c "$COMMAND"
