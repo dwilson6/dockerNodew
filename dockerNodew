@@ -3,16 +3,27 @@
 # Runs a node script or npm command in a docker container interactively. The 
 # first arg should be the path to a script relative to the pwd or 'npm'. The 
 # current user/group are injected into the container so you can do an npm 
-# install and get the right file permissions
-ADD_USER_SCRIPT="addgroup -gid $(id -g) 'usergroup'; adduser -uid $(id -u) --gecos "" --disabled-login --disabled-password --force-badname --ingroup 'usergroup' --shell /bin/sh '$(id -un)'; su $(id -un) -c 'mkdir -p ./build/.tmp/.npm'; npm config set prefix './build/.tmp/.npm'"
+# install and get the right file permissions. The node version to use is set 
+# via the NODE_VERSION variable and it defaults to using the slim version of
+# the offical node image. Set USE_FULL_IMAGE=true before running to use the 
+# full node image
+ADD_USER_SCRIPT="addgroup -gid $(id -g) 'usergroup'; adduser -uid $(id -u) --gecos '' --disabled-login --disabled-password --force-badname --ingroup 'usergroup' --shell /bin/sh '$(id -un)'; su $(id -un) -c 'mkdir -p ./build/.tmp/.npm'; npm config set prefix './build/.tmp/.npm'"
 NODE_COMMAND="node $1 ${@:2}"
 if [[ "$1" = "npm" ]]; then
   NODE_COMMAND="npm ${@:2}"
+fi
+if [[ "$1" = "node" ]]; then
+  NODE_COMMAND="node ${@:2}"
 fi
 if [[ -e "$(pwd)/.nvmrc" ]]; then
   NODE_VERSION=$(cat $(pwd)/.nvmrc)
 elif [[ -z $NODE_VERSION ]]; then
   NODE_VERSION=6.3.1
 fi
-COMMAND="$ADD_USER_SCRIPT; su $(id -un) -c '$NODE_COMMAND'"
-docker run -i --net=host --rm -v="$(pwd):/code" -w="/code" node:$NODE_VERSION /bin/sh -c "$COMMAND"
+if [[ -z "$USE_FULL_IMAGE" ]]; then
+  NODE_VERSION="${NODE_VERSION}-slim"
+fi
+COMMAND="eval \"$ADD_USER_SCRIPT\" > /dev/null 2>&1; su $(id -un) -c '$NODE_COMMAND'"
+NODE_IMAGE="node:$NODE_VERSION"
+docker pull $NODE_IMAGE >/dev/null
+docker run -i --net=host --rm -v="$(pwd):/code" -w="/code" $NODE_IMAGE /bin/sh -c "$COMMAND"
