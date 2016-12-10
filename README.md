@@ -8,4 +8,6 @@ Usage Examples:
 
 The user running the command and group are dynamically added in the container so file permissions are correct from an npm install.  
 
-Also the node version to use will be picked up from a .nvmrc file or the NODE_VERSION environment variable or fallback to a default if not specified.
+The node version to use will be picked up from a .nvmrc file or the NODE_VERSION environment variable or fallback to a default if not 
+specified. By default it will use the slim version of the offical node docker image. If you want to use the full image set the 
+environment variable  USE_FULL_IMAGE=true before running ./dockerNodew
